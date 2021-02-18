@@ -43,14 +43,16 @@ doseData = calcResponseAmp2(doseData, n, parms);
 %Calculate population-average and single-cell dose-response data
 [popAvgData, SCAvgData] = calcPopAvgDoseResponse2(doseData, parms);
 
+%% Plot FRET Time-series
+plotFRETTimeSeries(EfretData, dataparms, parms, OutputDest);
+
 %% Fit hill function to population-average dose-response data
 %Collect dose-response data, and optimal parameters for hill function
 HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms, OutputDest);
 
-
 %% Fit CDF
 CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest);
 
-
 %% Save Information for Recreating Plots Elsewhere
 save([OutputDest, 'plotData.mat'], "HillPlotData", "CDFPlotData");
+

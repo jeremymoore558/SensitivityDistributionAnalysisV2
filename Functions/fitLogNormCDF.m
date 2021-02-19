@@ -23,7 +23,7 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     
     %Axis labels
     xlabel(dataparms.xlabels)
-    ylabel("P[R < 0.5]")
+    ylabel("P(K_{1/2} < [L])")
     xlim([min(Lplot), max(Lplot)])
     ylim([0, 1])
     

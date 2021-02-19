@@ -8,7 +8,7 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     CDFPoints = lessThanHalf./size(singleCellRnorm, 1);
     
     p0 = dataparms.Normp0;
-    fitfun = @(b, L) logncdf(L, b(1), b(2)); %b(1) = meanKhalf, b(2) = variance
+    fitfun = @(b, L) b(3)*logncdf(L, b(1), b(2)); %b(1) = meanKhalf, b(2) = variance, b(3) scaling
     inv_log_post = @(p) -(sum(-(CDFPoints - fitfun(p, (concLevels))).^2));
     p_opt2 = fminunc(inv_log_post, p0);
     
@@ -26,6 +26,11 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     ylabel("P[R < 0.5]")
     xlim([min(Lplot), max(Lplot)])
     ylim([0, 1])
+    
+    %Put data in title
+    p_text = exp(p_opt2);
+    title(['\langle K_{1/2} \rangle = ', num2str(p_text(1))])
+
     
     %Save Figure in Output Destination
     savefig(gcf, [OutputDest, 'HillFit.fig'])

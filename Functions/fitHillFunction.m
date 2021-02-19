@@ -6,8 +6,9 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     backConc = dataparms.backConc; %Background concentration of experiment
     concLevels = dataparms.concLevels; %Attractant concentrations measured
     
-    %Equation for decreasing hill function. p(1) = n, p(2) = Kd
-    y = @(p, x) 1 ./ (1 + (x./exp(p(2))).^exp(p(1))) - 1;
+    %Equation for decreasing hill function. p(1) = n, p(2) = Kd, p(3) =
+    %scaling factor
+    y = @(p, x) p(3) * (1./ (1 + (x./exp(p(2))).^exp(p(1))) - 1);
     
     %Inverse log-posterior. Here, is just likelihood
     inv_log_post = @(p) -(sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2));

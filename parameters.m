@@ -5,6 +5,8 @@ function parms = parameters()
     %% Analysis Parameters
     parms.m = 5; %Number of responses to include in analysis
     parms.meanormedian = 1; %If 0, use mean for population average. If 1, use median 
+    parms.nSamples = 10000; %Number of samples for MCMC sampling
+    parms.thining = 10;
     
     %% Removed frames
     %Determines how many frames before and after the first stimulus frame

@@ -6,17 +6,58 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     backConc = dataparms.backConc; %Background concentration of experiment
     concLevels = dataparms.concLevels; %Attractant concentrations measured
     
-    %Equation for decreasing hill function. p(1) = n, p(2) = Kd, p(3) =
+    %Equation for decreasing hill function. p(1) = log n, p(2) = log Kd, p(3) =
     %scaling factor
     y = @(p, x) p(3) * (1./ (1 + (x./exp(p(2))).^exp(p(1))) - 1);
     
     %Inverse log-posterior. Here, is just likelihood
     inv_log_post = @(p) -(sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2));
-
+    
     %Minimize log likelihood
     p_opt = fminunc(inv_log_post, p0);
     
+    % Log posterior with priors
+    %Current priors are that:
+        %n ~ N(n_ML, n_ML) (CV = 1)
+        %K ~ N(K_ML, K_ML) (CV = 1)
+        %A ~ U(0, 2)
+    log_post = @(p) (sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2)) +...
+        log(normpdf(p(1), p_opt(1), p_opt(1))) + log(normpdf(p(2), p_opt(2), p_opt(2))) + log(unifpdf(p(3), 0, 2));
+
+    
+    %% Evaluate posterior distribution to find error bars on parameters
+    rnd = slicesample(p0, parms.nSamples, 'logpdf', log_post, 'thin', parms.thining);
+   
+        %% Plot MCMC samples
+    figure(); hold on
+    subplot(3, 2, 1)
+    plot(rnd(:, 1))
+    ylabel("log n")
+    subplot(3, 2, 2)
+    histogram(rnd(:, 1))
+    xlabel("log n")
+    
+    subplot(3, 2, 3)
+    plot(rnd(:, 2))
+    ylabel("log K_{1/2}")
+    subplot(3, 2, 4)
+    histogram(rnd(:, 1))
+    xlabel("log K_{1/2}")
+    
+    subplot(3, 2, 5)
+    plot(rnd(:, 3))
+    ylabel("A")
+    subplot(3, 2, 6)
+    histogram(rnd(:, 3))
+    xlabel("A")
+    
+    %Save Figure in Output Destination
+    savefig(gcf, [OutputDest, 'HillMCMC.fig'])
+    saveas(gcf, [OutputDest, 'HillMCMC.png'])
+
+
     %% Plot fit
+%     p_opt = median(rnd);
     ssDoseResp = SCAvgData.ScMeanRnorm;
     Lplot = dataparms.Lplot;
     
@@ -45,8 +86,9 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     ylabel("\langle a \rangle")
     
     %Save Figure in Output Destination
-    savefig(gcf, [OutputDest, 'CDFFit.fig'])
-    saveas(gcf, [OutputDest, 'CDFFit.png'])
+    savefig(gcf, [OutputDest, 'HillFit.fig'])
+    saveas(gcf, [OutputDest, 'HillFit.png'])
+    
     
     %% Assemble Data for Easy Plotting Elsewhere
     HillPlotData.concLevels = concLevels;

@@ -33,8 +33,8 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
 
     
     %Save Figure in Output Destination
-    savefig(gcf, [OutputDest, 'HillFit.fig'])
-    saveas(gcf, [OutputDest, 'HillFit.png'])
+    savefig(gcf, [OutputDest, 'CDFFit.fig'])
+    saveas(gcf, [OutputDest, 'CDFFit.png'])
 
     
     %% Save optimal parameters

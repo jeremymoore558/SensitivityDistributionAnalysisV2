@@ -1,8 +1,7 @@
 %% Last Updated 2/17/2021 JM
-%Urgent TODO: Fix fitHillFunction.m. Make plt nicer. Rotate histogram
 %Todo: Implement confidence intervals on CDFPoints using bootstrapping
-%Todo: Implement confidence intervals on Dose response and CDF parameters
-%by evaluating the posterior
+%Todo: Implement confidence intervals on CDF parameters
+%by MCMC Sampling
 
 %This script is meant to be used to analyze data output by
 %"FretDataExtractionAndProcessing" by K.K. 

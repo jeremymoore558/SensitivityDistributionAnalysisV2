@@ -27,29 +27,45 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     
     %% Evaluate posterior distribution to find error bars on parameters
     rnd = slicesample(p0, parms.nSamples, 'logpdf', log_post, 'thin', parms.thining);
+    
+    %Calculate percentiles
+    %Percentile for n
+    n_low = exp(prctile(rnd(:, 1), 2.5));
+    n_high = exp(prctile(rnd(:, 1), 97.5));
+    K_low = exp(prctile(rnd(:, 2), 2.5));
+    K_high = exp(prctile(rnd(:, 2), 97.5));
+    A_low = prctile(rnd(:, 3), 2.5);
+    A_high = prctile(rnd(:, 3), 97.5);
+    
+    %Find error bars
+    n_err = (n_high - n_low) ./ 2;
+    K_err = (K_high - K_low)./ 2;
    
         %% Plot MCMC samples
     figure(); hold on
+
     subplot(3, 2, 1)
     plot(rnd(:, 1))
     ylabel("log n")
     subplot(3, 2, 2)
     histogram(rnd(:, 1))
-    xlabel("log n")
+    camroll(-90)
     
     subplot(3, 2, 3)
     plot(rnd(:, 2))
     ylabel("log K_{1/2}")
     subplot(3, 2, 4)
     histogram(rnd(:, 1))
-    xlabel("log K_{1/2}")
+    camroll(-90)
     
     subplot(3, 2, 5)
     plot(rnd(:, 3))
     ylabel("A")
     subplot(3, 2, 6)
     histogram(rnd(:, 3))
-    xlabel("A")
+    camroll(-90)
+    sgtitle("MCMC samples of the posterior")
+
     
     %Save Figure in Output Destination
     savefig(gcf, [OutputDest, 'HillMCMC.fig'])
@@ -79,8 +95,11 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     set(gca, 'xscale', 'log')
     
     p_text = exp(p_opt);
-    title(['n = ', num2str(p_text(1)), ' | K = ', num2str(p_text(2))])
-    
+%     title(['n = ', num2str(p_text(1)), '[', num2str(n_low), ',', num2str(n_high),']', ...
+%         ' | K = ', num2str(p_text(2)), '[', num2str(K_low), ',', num2str(K_high),']'])
+     title(['n = ', num2str(p_text(1)), '\pm', num2str(n_err), ...
+        ' | K = ', num2str(p_text(2)), '\pm', num2str(K_err)])
+   
     %Axis labels
     xlabel(dataparms.xlabels);
     ylabel("\langle a \rangle")

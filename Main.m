@@ -56,3 +56,6 @@ CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest);
 %% Save Information for Recreating Plots Elsewhere
 save([OutputDest, 'plotData.mat'], "HillPlotData", "CDFPlotData");
 
+%% End
+close all; 
+

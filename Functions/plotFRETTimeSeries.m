@@ -45,7 +45,7 @@ function plotFRETTimeSeries(EfretData, dataparms, parms, OutputDest)
     nPlots = 10;
     for i = 1:size(plotData.aSeries, 1)
         if mod(i, nPlots) == 1
-            figure() 
+            figure('Visible', 'off') 
         end
         subplot(nPlots, 1, mod(i-1, nPlots)+1)
         plot(plotData.aSeries(i, :));

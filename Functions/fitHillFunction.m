@@ -8,7 +8,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     
     %Equation for decreasing hill function. p(1) = log n, p(2) = log Kd, p(3) =
     %scaling factor
-    y = @(p, x) p(3) * (1./ (1 + (x./exp(p(2))).^exp(p(1))) - 1);
+    y = @(p, x) p(3) * (1./ (1 + ((x-backConc)./(exp(p(2)))).^exp(p(1))) - 1);
     
     %Inverse log-posterior. Here, is just likelihood
     inv_log_post = @(p) -(sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2));
@@ -22,11 +22,18 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
         %K ~ N(K_ML, K_ML) (CV = 1)
         %A ~ U(0, 2)
     log_post = @(p) (sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2)) +...
-        log(normpdf(p(1), p_opt(1), p_opt(1))) + log(normpdf(p(2), p_opt(2), p_opt(2))) + log(unifpdf(p(3), 0, 2));
+        log(normpdf(p(1), p_opt(1), (abs(p_opt(1))))) + log(normpdf(p(2), p_opt(2), (abs(p_opt(2))))) + ...
+        log(unifpdf(p(3), 0, 3));
+
+    %Log posterior with uniform priors performs worse than gaussian priors
+%     log_post = @(p) (sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2)) +...
+%         log(unifpdf(p(1), -3, 3)) + log(unifpdf(p(2), -3, 3)) + ...
+%         log(unifpdf(p(3), 0, 3));
+
 
     
     %% Evaluate posterior distribution to find error bars on parameters
-    rnd = slicesample(p0, parms.nSamples, 'logpdf', log_post, 'thin', parms.thining);
+    rnd = slicesample(p_opt, parms.nSamples, 'logpdf', log_post, 'thin', parms.thining);
     
     %Calculate percentiles
     %Percentile for n
@@ -49,13 +56,15 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     ylabel("log n")
     subplot(3, 2, 2)
     histogram(rnd(:, 1))
+    line([p_opt(1), p_opt(1)], ylim, 'LineWidth', 1, 'Color', 'r');
     camroll(-90)
     
     subplot(3, 2, 3)
     plot(rnd(:, 2))
     ylabel("log K_{1/2}")
     subplot(3, 2, 4)
-    histogram(rnd(:, 1))
+    histogram(rnd(:, 2))
+    line([p_opt(2), p_opt(2)], ylim, 'LineWidth', 1, 'Color', 'r');
     camroll(-90)
     
     subplot(3, 2, 5)
@@ -63,6 +72,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     ylabel("A")
     subplot(3, 2, 6)
     histogram(rnd(:, 3))
+    line([p_opt(3), p_opt(3)], ylim, 'LineWidth', 1, 'Color', 'r');
     camroll(-90)
     sgtitle("MCMC samples of the posterior")
 
@@ -85,7 +95,12 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     end
     
     %Plot fitted line
-    plot(Lplot, y(p_opt, Lplot), 'linewidth', 3, 'Color', parms.lineColor)
+    if backConc ~= 0
+        LplotNew = 10.^[log10(backConc):0.01:log10(max(Lplot))];
+    else
+        LplotNew = Lplot;
+    end
+    plot(LplotNew, y(p_opt, LplotNew), 'linewidth', 3, 'Color', parms.lineColor)
     
     %Plot error bars on population-average measurements
     errorbar(concLevels, DoseResp, sigma/sqrt(size(ssDoseResp, 1)), 'o', 'MarkerSize', 5, 'Linewidth', 1.5, 'Color', parms.lineColor)
@@ -98,7 +113,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
 %     title(['n = ', num2str(p_text(1)), '[', num2str(n_low), ',', num2str(n_high),']', ...
 %         ' | K = ', num2str(p_text(2)), '[', num2str(K_low), ',', num2str(K_high),']'])
      title(['n = ', num2str(p_text(1)), '\pm', num2str(n_err), ...
-        ' | K = ', num2str(p_text(2)), '\pm', num2str(K_err)])
+        ' | K = ', num2str(p_text(2) + backConc), '\pm', num2str(K_err)])
    
     %Axis labels
     xlabel(dataparms.xlabels);
@@ -116,6 +131,8 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     HillPlotData.ssDoseResp = ssDoseResp;
     HillPlotData.PopAvgDoseResp = DoseResp;
     HillPlotData.PopAvgDoseStd = sigma;
+    HillPlotData.n_err = n_err;
+    HillPlotData.K_err = K_err;
 
     
 end

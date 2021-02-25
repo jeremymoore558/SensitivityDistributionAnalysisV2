@@ -11,7 +11,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
     y = @(p, x) p(3) * (1./ (1 + ((x-backConc)./(exp(p(2)))).^exp(p(1))) - 1);
     
     %Inverse log-posterior. Here, is just likelihood
-    inv_log_post = @(p) -(sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2));
+    inv_log_post = @(p) -(sum(-(1./(2*sigma.^2)) .* (DoseResp - y(p, concLevels)).^2));
     
     %Minimize log likelihood
     p_opt = fminunc(inv_log_post, p0);
@@ -21,7 +21,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
         %n ~ N(n_ML, n_ML) (CV = 1)
         %K ~ N(K_ML, K_ML) (CV = 1)
         %A ~ U(0, 2)
-    log_post = @(p) (sum(-(1/2*sigma.^2) .* (DoseResp - y(p, concLevels)).^2)) +...
+    log_post = @(p) (sum(-(1./(2*sigma.^2)) .* (DoseResp - y(p, concLevels)).^2)) +...
         log(normpdf(p(1), p_opt(1), (abs(p_opt(1))))) + log(normpdf(p(2), p_opt(2), (abs(p_opt(2))))) + ...
         log(unifpdf(p(3), 0, 3));
 
@@ -117,7 +117,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
    
     %Axis labels
     xlabel(dataparms.xlabels);
-    ylabel("\langle a \rangle")
+    ylabel("\langle R \rangle")
     
     %Save Figure in Output Destination
     savefig(gcf, [OutputDest, 'HillFit.fig'])

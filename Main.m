@@ -1,4 +1,4 @@
-%% Last Updated 2/17/2021 JM
+%% Last Updated 2/24/2021 JM
 %Todo: Implement confidence intervals on CDFPoints using bootstrapping
 %Todo: Implement confidence intervals on CDF parameters
 %by MCMC Sampling

@@ -30,7 +30,7 @@ for i = 1:length(Files1)
     %Plot CDF In Top left
     subplot(2,2,1)
     hold on
-    C(i) = plot(CDFPlotData.concLevels, CDFPlotData.CDFPoints, 'o', 'color', colr(i));
+    C(i) = errorbar(CDFPlotData.concLevels, CDFPlotData.CDFPoints, CDFPlotData.CDFPointStd, 'o', 'color', colr(i));
     plot(CDFPlotData.Lplot, CDFFunc(CDFPlotData.p_opt, CDFPlotData.Lplot), 'color', colr(i), 'Linewidth', 1.8);
     if i == length(Files1)
         xlabel('[MeAsp]')
@@ -57,7 +57,7 @@ for i = 1:length(Files2)
     %Plot CDF In Top left
     subplot(2,2,2)
     hold on
-    C(i) = plot(CDFPlotData.concLevels, CDFPlotData.CDFPoints, 'o', 'color', colr(i));
+    C(i) = errorbar(CDFPlotData.concLevels, CDFPlotData.CDFPoints, CDFPlotData.CDFPointStd, 'o', 'color', colr(i));
     plot(CDFPlotData.Lplot, CDFFunc(CDFPlotData.p_opt, CDFPlotData.Lplot), 'color', colr(i), 'Linewidth', 1.8);
     if i == length(Files1)
         xlabel('[Ser]')

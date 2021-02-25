@@ -7,6 +7,7 @@ function parms = parameters()
     parms.meanormedian = 1; %If 0, use mean for population average. If 1, use median 
     parms.nSamples = 10000; %Number of samples for MCMC sampling
     parms.thining = 10;
+    parms.nBootstraps = 1000; %Number of bootstrap samples for fitting CDF
     
     %% Removed frames
     %Determines how many frames before and after the first stimulus frame

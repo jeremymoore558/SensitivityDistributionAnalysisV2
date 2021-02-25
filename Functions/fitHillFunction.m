@@ -30,7 +30,7 @@ function HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms,
 %         log(unifpdf(p(1), -3, 3)) + log(unifpdf(p(2), -3, 3)) + ...
 %         log(unifpdf(p(3), 0, 3));
 
-
+p_opt
     
     %% Evaluate posterior distribution to find error bars on parameters
     rnd = slicesample(p_opt, parms.nSamples, 'logpdf', log_post, 'thin', parms.thining);

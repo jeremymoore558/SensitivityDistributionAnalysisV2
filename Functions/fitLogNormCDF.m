@@ -1,5 +1,5 @@
 function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
-    %% Fit Log-normal CDF to data
+    %% Collect points on the CDF using P(K<L) ~ P(R>0.5)
     singleCellRnorm = SCAvgData.ScMeanRnorm;
     concLevels = dataparms.concLevels;
     
@@ -7,10 +7,27 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     lessThanHalf = sum(singleCellRnorm < -0.5, 1); 
     CDFPoints = lessThanHalf./size(singleCellRnorm, 1);
     
+    %% Using bootstrapping, get std for each point
+    nRuns = parms.nBootstraps;
+    AllLessThanHalf = zeros(nRuns, size(lessThanHalf, 2));
+    for i = 1:nRuns
+        %Get random samples from the data
+        samp = randi(size(singleCellRnorm, 1), size(singleCellRnorm, 1), size(singleCellRnorm, 2));
+       for j = 1:size(singleCellRnorm, 2)
+            ssRnormSamp(:, j) = singleCellRnorm(samp(:, j), j);            
+       end
+       AllLessThanHalf(i, :) = sum(ssRnormSamp < -0.5, 1);
+    end
+    CDFPointSamples = AllLessThanHalf ./ size(singleCellRnorm, 1);
+    CDFPointErr = std(CDFPointSamples, 0, 1);
+    
+    %% Fit Log-normal CDF to data
+    sigma = CDFPointErr;
+    sigma(sigma == 0) = 0.01; %Just in case you have a sample with 0 error
     p0 = dataparms.Normp0;
 %     p0(1:2) = log(p0(1:2));
     fitfun = @(b, L) b(3)*logncdf(L, (b(1)), ((b(2)))); %b(1) = meanKhalf, b(2) = variance, b(3) scaling
-    inv_log_post = @(p) -(sum(-(CDFPoints - fitfun(p, (concLevels))).^2));
+    inv_log_post = @(p) -(sum(-(1./(2*sigma.^2)).*(CDFPoints - fitfun(p, (concLevels))).^2));
     p_opt2 = fminunc(inv_log_post, p0);
     
     % Log posterior with priors
@@ -18,7 +35,7 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
         %n ~ N(n_ML, n_ML) (CV = n_ML)
         %K ~ N(K_ML, K_ML) (CV = 1)
         %A ~ U(0, 2)
-    log_post = @(p) (sum(-(CDFPoints - fitfun(p, (concLevels))).^2)) +...
+    log_post = @(p) (sum(-(1./(2*sigma.^2)).*(CDFPoints - fitfun(p, (concLevels))).^2)) +...
         log(normpdf(p(1), p_opt2(1), abs(p_opt2(1)))) + log(normpdf(p(2), p_opt2(2), abs(p_opt2(2)))) + ...
         log(unifpdf(p(3), -1, 3));
 
@@ -78,7 +95,7 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     figure('visible', parms.showPlot)
     hold on
     plot(Lplot, fitfun(p_opt2, Lplot), 'linewidth', 3, 'Color', parms.lineColor)
-    plot(concLevels, CDFPoints, 'o', 'MarkerSize', 5, 'Color', parms.lineColor)
+    errorbar(concLevels, CDFPoints, CDFPointErr, 'o', 'MarkerSize', 5, 'Color', parms.lineColor)
     xlim([min(Lplot), max(Lplot)])
     set(gca, 'xscale', 'log')
     
@@ -106,6 +123,6 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     CDFPlotData.CDFPoints = CDFPoints;
     CDFPlotData.K_err = K_err;
     CDFPlotData.Var_err = Var_err;
-    
+    CDFPlotData.CDFPointStd = CDFPointErr;
 
 end

@@ -1,7 +1,7 @@
 %% Last Updated 2/24/2021 JM
 %Todo: Implement confidence intervals on CDFPoints using bootstrapping
-%Todo: Implement confidence intervals on CDF parameters
-%by MCMC Sampling
+%Todo: Fix confidence intervals on CDF parameters by MCMC Sampling
+    %Actually seems to have been fixed by implementing bootstrapping
 
 %This script is meant to be used to analyze data output by
 %"FretDataExtractionAndProcessing" by K.K. 
@@ -57,5 +57,5 @@ CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest);
 save([OutputDest, 'plotData.mat'], "HillPlotData", "CDFPlotData");
 
 %% End
-close all; 
+% close all; 
 

@@ -1,25 +1,49 @@
 function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
     %% Collect points on the CDF using P(K<L) ~ P(R>0.5)
-    singleCellRnorm = SCAvgData.ScMeanRnorm;
     concLevels = dataparms.concLevels;
+        
+    %% Bootstrap single-cell average responses to get std for each point  
+    %Calculate mean percent of cells that respond less than half-maximally
+%     singleCellRnorm = SCAvgData.ScMeanRnorm;
+%     lessThanHalf = sum(singleCellRnorm < -0.5, 1); 
+%     CDFPoints = lessThanHalf./size(singleCellRnorm, 1);
+% 
+    %Calculate confidence intervals with bootstrapping
+%     nRuns = parms.nBootstraps;
+%     AllLessThanHalf = zeros(nRuns, size(lessThanHalf, 2));
+%     for i = 1:nRuns
+%         %Get random samples from the data
+%         samp = randi(size(singleCellRnorm, 1), size(singleCellRnorm, 1), size(singleCellRnorm, 2));
+%        for j = 1:size(singleCellRnorm, 2)
+%             ssRnormSamp(:, j) = singleCellRnorm(samp(:, j), j);            
+%        end
+%        AllLessThanHalf(i, :) = sum(ssRnormSamp < -0.5, 1);
+%     end
+%     CDFPointSamples = AllLessThanHalf ./ size(singleCellRnorm, 1);
+%     CDFPointErr = std(CDFPointSamples, 0, 1);
     
-    %Calculate percent of cells that respond less than half-maximally
-    lessThanHalf = sum(singleCellRnorm < -0.5, 1); 
-    CDFPoints = lessThanHalf./size(singleCellRnorm, 1);
-    
-    %% Using bootstrapping, get std for each point
+    %% Bootstrap single-cell individual responses to get std for each point
+    %Calculate mean percent of cells that respond less than half-maximally
+    IndividualRnorm = SCAvgData.allRData_norm;
+    lessThanHalf = sum(IndividualRnorm < -0.5, 1); 
+    CDFPoints = lessThanHalf./size(IndividualRnorm, 1);
+
+    %Calculate confidence intervals on each point with bootstrapping
     nRuns = parms.nBootstraps;
     AllLessThanHalf = zeros(nRuns, size(lessThanHalf, 2));
     for i = 1:nRuns
-        %Get random samples from the data
-        samp = randi(size(singleCellRnorm, 1), size(singleCellRnorm, 1), size(singleCellRnorm, 2));
-       for j = 1:size(singleCellRnorm, 2)
-            ssRnormSamp(:, j) = singleCellRnorm(samp(:, j), j);            
-       end
-       AllLessThanHalf(i, :) = sum(ssRnormSamp < -0.5, 1);
+        %Get random samples from individual response data
+        samp = randi(size(IndividualRnorm, 1), size(IndividualRnorm, 1), size(IndividualRnorm, 2));
+        for j = 1:size(IndividualRnorm, 2)
+            ssRnormSamp(:, j) = IndividualRnorm(samp(:, j), j);
+        end
+        AllLessThanHalf(i, :) = sum(ssRnormSamp < -0.5, 1);
     end
-    CDFPointSamples = AllLessThanHalf ./ size(singleCellRnorm, 1);
+    CDFPointSamples = AllLessThanHalf ./ size(IndividualRnorm, 1);
     CDFPointErr = std(CDFPointSamples, 0, 1);
+    CDFPointPos = abs(prctile(CDFPointSamples, 97.5) - CDFPoints);
+    CDFPointNeg = abs(prctile(CDFPointSamples, 2.5) - CDFPoints);
+   
     
     %% Fit Log-normal CDF to data
     sigma = CDFPointErr;
@@ -91,11 +115,18 @@ function CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest)
 
     
     %% Plot CDF Fit
-    Lplot = dataparms.Lplot;
+    LplotOld = dataparms.Lplot;
+    if dataparms.backConc ~= 0
+        Lplot = 10.^[log10(dataparms.backConc)-1:0.01:log10(max(LplotOld))];
+    else
+        Lplot = LplotOld;
+    end
+    
     figure('visible', parms.showPlot)
     hold on
     plot(Lplot, fitfun(p_opt2, Lplot), 'linewidth', 3, 'Color', parms.lineColor)
-    errorbar(concLevels, CDFPoints, CDFPointErr, 'o', 'MarkerSize', 5, 'Color', parms.lineColor)
+%     errorbar(concLevels, CDFPoints, CDFPointErr, 'o', 'MarkerSize', 5, 'Color', parms.lineColor)
+    errorbar(concLevels, CDFPoints, CDFPointNeg, CDFPointPos, 'o', 'MarkerSize', 5, 'Color', parms.lineColor)
     xlim([min(Lplot), max(Lplot)])
     set(gca, 'xscale', 'log')
     

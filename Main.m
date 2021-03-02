@@ -1,7 +1,8 @@
 %% Last Updated 2/24/2021 JM
-%Todo: Implement confidence intervals on CDFPoints using bootstrapping
-%Todo: Fix confidence intervals on CDF parameters by MCMC Sampling
-    %Actually seems to have been fixed by implementing bootstrapping
+%Todo: Implement a filter for bad cells in the initial data processing
+    %Idea for filter: remove responses below -2 and above 2
+%Todo: Use keita's method for bootstrapping confidence interval on CDF
+%points. Bootstrap from individual responses instead of single cell average
 
 %This script is meant to be used to analyze data output by
 %"FretDataExtractionAndProcessing" by K.K. 
@@ -43,6 +44,10 @@ doseData = calcResponseAmp2(doseData, n, parms);
 %Calculate population-average and single-cell dose-response data
 [popAvgData, SCAvgData] = calcPopAvgDoseResponse2(doseData, parms);
 
+%% Distribution of dynamic ranges
+%Find EfretMax - EfretMin and (EfretMax - EfretMin) / EfretMin
+FretRangeData = findRangeDistribution(EfretData, OutputDest);
+
 %% Plot FRET Time-series
 plotFRETTimeSeries(EfretData, dataparms, parms, OutputDest);
 
@@ -54,7 +59,7 @@ HillPlotData = fitHillFunction(popAvgData, SCAvgData, dataparms, parms, OutputDe
 CDFPlotData = fitLogNormCDF(SCAvgData, dataparms, parms, OutputDest);
 
 %% Save Information for Recreating Plots Elsewhere
-save([OutputDest, 'plotData.mat'], "HillPlotData", "CDFPlotData");
+save([OutputDest, 'plotData.mat'], "HillPlotData", "CDFPlotData", "FretRangeData");
 
 %% End
 % close all; 

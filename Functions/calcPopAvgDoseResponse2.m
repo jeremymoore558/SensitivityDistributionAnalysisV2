@@ -6,6 +6,14 @@ function [popAvgData, SCAvgData] = calcPopAvgDoseResponse2(doseData, parms)
         popAvgData.a0(i) = mean(doseData(i).preStimVals(:));
     end
     
+    for i = 1:size(popAvgData.allRData, 2)
+        temp = popAvgData.allRData(:, i, :);
+        SCAvgData.allRData(:, i) = temp(:); %(rep, doselevel)
+        
+        temp = popAvgData.allRData_norm(:, i, :);
+        SCAvgData.allRData_norm(:, i) = temp(:);
+    end
+    
     if ~parms.meanormedian
     	%Calculate mean response amplitude
         popAvgData.meanRraw = mean(popAvgData.allRData, [3, 1]);
